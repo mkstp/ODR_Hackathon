@@ -111,3 +111,86 @@ Parent/guardian dashboard, full cross-border ODR framework, and smart contract i
 - Marc St-Pierre
 - Gregory Wataro
 - Michael Fong
+
+---
+
+## Developer Guide
+
+### Installation
+
+**Prerequisites:** Python 3.11+
+
+```bash
+# Clone the repository
+git clone https://github.com/mkstp/ODR_Hackathon.git
+cd ODR_Hackathon
+
+# Create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate      # macOS / Linux
+# .venv\Scripts\activate       # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Usage
+
+```bash
+# Run the chat UI
+streamlit run src/chat_ui.py
+```
+
+### Configuration
+
+| Variable / File | Purpose | Default |
+|----------------|---------|---------|
+| `ANTHROPIC_API_KEY` | Claude API authentication | required |
+| `SYSTEM_PROMPT_PATH` | Path to the system prompt spec file | `docs/system_prompt.txt` |
+| `ESCALATION_LOG_PATH` | Path for the ODR escalation JSONL log | `escalation_log.jsonl` |
+
+Copy `.env.example` to `.env` and fill in values before running.
+
+### Testing
+
+```bash
+# Activate the virtual environment first
+source .venv/bin/activate
+
+# Run the full test suite
+pytest tests/
+
+# Run with coverage
+pytest tests/ --cov=src --cov-report=term-missing
+```
+
+See `tests/README.md` for a full description of test categories and traceability.
+
+### Project Structure
+
+```
+ODR_Hackathon/
+├── src/
+│   ├── models.py                  # Data structures (Session, Turn, ClassificationResult, etc.)
+│   ├── session_manager.py         # MOD-001: SessionManager
+│   ├── harm_classifier.py         # MOD-002: HarmClassifier
+│   ├── pattern_risk_tracker.py    # MOD-003: PatternRiskTracker
+│   ├── response_controller.py     # MOD-004: ResponseController
+│   ├── odr_escalation_trigger.py  # MOD-005: ODREscalationTrigger
+│   └── chat_ui.py                 # MOD-006: ChatUI (Streamlit)
+├── tests/
+│   ├── manifest.json              # Traceability map (VCs → DELs → MODs → tests)
+│   ├── README.md                  # Test suite documentation
+│   ├── conftest.py                # Shared pytest fixtures
+│   ├── validation/                # VC-NNN validation tests
+│   ├── deliverables/              # DEL-NNN deliverable tests
+│   ├── unit/                      # MOD-NNN unit tests
+│   └── integration/               # End-to-end pipeline tests
+├── docs/
+│   ├── project_charter.md
+│   ├── deliverables.md
+│   ├── technical_design_document.md
+│   └── system_prompt_guide.md
+├── requirements.txt
+└── README.md
+```

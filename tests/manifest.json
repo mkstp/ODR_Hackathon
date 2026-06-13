@@ -1,0 +1,283 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "description": "Test manifest linking tests to validation conditions, deliverables, and modules. This file provides full traceability from requirements to test coverage.",
+    "generated_by": "project-scaffolding skill"
+  },
+
+  "project": "MinorSafe AI Guardrail System",
+
+  "generated_from": {
+    "charter": "docs/project_charter.md",
+    "deliverables": "docs/deliverables.md",
+    "design": "docs/technical_design_document.md"
+  },
+
+  "date": "2026-06-13",
+
+  "validation_conditions": [
+    {
+      "id": "VC-001",
+      "assertion": "Pipeline correctly classifies at least 4 of 5 scripted harm scenarios at the correct risk level (Green/Yellow/Orange/Red).",
+      "applies_to": ["DEL-001", "DEL-002"],
+      "check_method": "automated",
+      "tests": [
+        {
+          "path": "validation/test_vc001_harm_classification.py",
+          "description": "Five scripted harm scenarios (criminal liability, self-harm, cyberbullying, drugs/weapons, age bypass) each with a stubbed classifier asserting the expected risk_level.",
+          "type": "automated",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "VC-002",
+      "assertion": "When risk reaches Red, system produces an ODR escalation record (timestamped JSONL entry).",
+      "applies_to": ["DEL-001"],
+      "check_method": "automated",
+      "tests": [
+        {
+          "path": "validation/test_vc002_odr_escalation.py",
+          "description": "Asserts escalation fires at Red, record contains session_id and timestamp, and escalation is idempotent (does not fire twice).",
+          "type": "automated",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "VC-003",
+      "assertion": "Response controller produces risk-appropriate output for all four risk levels.",
+      "applies_to": ["DEL-001"],
+      "check_method": "automated",
+      "tests": [
+        {
+          "path": "validation/test_vc003_response_controller.py",
+          "description": "Four tests — one per risk level — asserting ResponsePayload message content and that crisis_resources is only non-empty at Red.",
+          "type": "automated",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "VC-004",
+      "assertion": "Cumulative pattern-risk tracker updates score across multiple turns (not per-message only).",
+      "applies_to": ["DEL-001"],
+      "check_method": "automated",
+      "tests": [
+        {
+          "path": "validation/test_vc004_pattern_risk_tracker.py",
+          "description": "Asserts score after 3 turns exceeds score after 1 turn for the same per-turn score, and that risk_level transitions match defined thresholds.",
+          "type": "automated",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "VC-005",
+      "assertion": "System prompt addresses all 10 harm categories with defined thresholds.",
+      "applies_to": ["DEL-002"],
+      "check_method": "manual",
+      "tests": [],
+      "manual_checklist_id": "MC-001"
+    }
+  ],
+
+  "deliverables": [
+    {
+      "id": "DEL-001",
+      "name": "MinorSafe Pipeline Prototype",
+      "modules": ["MOD-001", "MOD-002", "MOD-003", "MOD-004", "MOD-005", "MOD-006"],
+      "tests": [
+        {
+          "path": "deliverables/test_del001_pipeline.py",
+          "description": "Verifies pipeline modules are importable, data structures are defined, and a single-turn end-to-end call returns a ResponsePayload.",
+          "type": "functional",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "DEL-002",
+      "name": "System Prompt Specification",
+      "modules": [],
+      "tests": [],
+      "notes": "Non-code artifact. Validated by VC-005 via manual checklist MC-001."
+    },
+    {
+      "id": "DEL-003",
+      "name": "Pitch Deck",
+      "modules": [],
+      "tests": [],
+      "notes": "Non-code artifact. No automated tests applicable."
+    }
+  ],
+
+  "modules": [
+    {
+      "id": "MOD-001",
+      "name": "SessionManager",
+      "source": "src/session_manager.py",
+      "implements": "DEL-001",
+      "validated_by": ["VC-004"],
+      "tests": [
+        {
+          "path": "unit/test_session_manager.py",
+          "description": "Unit tests for SessionManager: create_session, add_turn, update_risk, mark_escalated.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "MOD-002",
+      "name": "HarmClassifier",
+      "source": "src/harm_classifier.py",
+      "implements": "DEL-001",
+      "validated_by": ["VC-001", "VC-003"],
+      "tests": [
+        {
+          "path": "unit/test_harm_classifier.py",
+          "description": "Unit tests for HarmClassifier: build_messages (history inclusion), parse_response (field extraction and error handling).",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "MOD-003",
+      "name": "PatternRiskTracker",
+      "source": "src/pattern_risk_tracker.py",
+      "implements": "DEL-001",
+      "validated_by": ["VC-001", "VC-004"],
+      "tests": [
+        {
+          "path": "unit/test_pattern_risk_tracker.py",
+          "description": "Unit tests for PatternRiskTracker: compute_risk_level at all 8 threshold boundaries, compute_turn_score weighting.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "MOD-004",
+      "name": "ResponseController",
+      "source": "src/response_controller.py",
+      "implements": "DEL-001",
+      "validated_by": ["VC-002", "VC-003"],
+      "tests": [
+        {
+          "path": "unit/test_response_controller.py",
+          "description": "Unit tests for ResponseController: generate_response per risk level, should_escalate logic.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "MOD-005",
+      "name": "ODREscalationTrigger",
+      "source": "src/odr_escalation_trigger.py",
+      "implements": "DEL-001",
+      "validated_by": ["VC-002"],
+      "tests": [
+        {
+          "path": "unit/test_odr_escalation_trigger.py",
+          "description": "Unit tests for ODREscalationTrigger: build_record field correctness, log_record appends valid JSON line, append-not-overwrite behaviour.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "MOD-006",
+      "name": "ChatUI",
+      "source": "src/chat_ui.py",
+      "implements": "DEL-001",
+      "validated_by": ["VC-001", "VC-002", "VC-003", "VC-004"],
+      "tests": [
+        {
+          "path": "unit/test_chat_ui.py",
+          "description": "Unit tests for ChatUI.handle_input: verifies pipeline modules are called in order and return value shape is correct.",
+          "status": "pending"
+        }
+      ]
+    }
+  ],
+
+  "integration_tests": [
+    {
+      "path": "integration/test_integration_pipeline.py",
+      "description": "5-turn scripted conversation escalating from Green to Red. Asserts final session state, escalation record written, per-turn ResponsePayload correctness, and no live API calls.",
+      "covers_modules": ["MOD-001", "MOD-002", "MOD-003", "MOD-004", "MOD-005", "MOD-006"],
+      "covers_deliverables": ["DEL-001"],
+      "covers_vcs": ["VC-001", "VC-002", "VC-003", "VC-004"],
+      "status": "pending"
+    }
+  ],
+
+  "traceability": {
+    "DEL-001": {
+      "validated_by": ["VC-001", "VC-002", "VC-003", "VC-004"],
+      "implemented_by": ["MOD-001", "MOD-002", "MOD-003", "MOD-004", "MOD-005", "MOD-006"],
+      "tested_in": [
+        "validation/test_vc001_harm_classification.py",
+        "validation/test_vc002_odr_escalation.py",
+        "validation/test_vc003_response_controller.py",
+        "validation/test_vc004_pattern_risk_tracker.py",
+        "deliverables/test_del001_pipeline.py",
+        "unit/test_session_manager.py",
+        "unit/test_harm_classifier.py",
+        "unit/test_pattern_risk_tracker.py",
+        "unit/test_response_controller.py",
+        "unit/test_odr_escalation_trigger.py",
+        "unit/test_chat_ui.py",
+        "integration/test_integration_pipeline.py"
+      ]
+    },
+    "DEL-002": {
+      "validated_by": ["VC-005"],
+      "implemented_by": [],
+      "tested_in": [],
+      "notes": "VC-005 is manual-only. See MC-001."
+    },
+    "DEL-003": {
+      "validated_by": [],
+      "implemented_by": [],
+      "tested_in": [],
+      "notes": "Non-code artifact. No automated tests."
+    }
+  },
+
+  "manual_checklist": [
+    {
+      "id": "MC-001",
+      "derived_from": "VC-005",
+      "description": "System prompt addresses all 10 harm categories with defined thresholds.",
+      "check_steps": [
+        "Open docs/system_prompt_specification.md (DEL-002).",
+        "Confirm the document lists exactly 10 harm categories by name.",
+        "For each category, verify a risk threshold (Green/Yellow/Orange/Red trigger point) is explicitly stated.",
+        "Confirm the thresholds are internally consistent with the PatternRiskTracker boundaries (Green <0.30, Yellow 0.30–0.54, Orange 0.55–0.79, Red >=0.80).",
+        "Note any category without a defined threshold as a finding."
+      ],
+      "status": "pending",
+      "verified_by": null,
+      "verified_date": null,
+      "notes": null
+    }
+  ],
+
+  "coverage_summary": {
+    "validation_conditions": {
+      "total": 5,
+      "with_automated_tests": 4,
+      "with_manual_checks": 1,
+      "orphaned": 0
+    },
+    "deliverables": {
+      "total": 3,
+      "with_tests": 1,
+      "orphaned": 0,
+      "notes": "DEL-002 and DEL-003 are non-code artifacts; DEL-002 covered by manual checklist MC-001."
+    },
+    "modules": {
+      "total": 6,
+      "with_unit_tests": 6
+    }
+  }
+}
