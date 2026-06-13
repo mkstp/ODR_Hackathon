@@ -1,8 +1,8 @@
-# Project Charter: [Project Name]
+# Project Charter: MinorSafe AI Guardrail System
 
 ## Overarching Objective
 
-[Headline statement of what the project exists to do. Followed by the core problem and the goals that address it.]
+Build a functional prototype of MinorSafe — an AI safety layer that sits between minors and AI applications to detect legally risky or emotionally harmful conversations early, and redirect them before harm becomes litigation. The system turns reactive content moderation into proactive Online Dispute Prevention (ODP).
 
 ## Scope Commitments
 
