@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from datetime import datetime, timezone
@@ -12,9 +12,8 @@ load_dotenv()
 
 from src import odr_escalation_trigger, pattern_risk_tracker, response_controller, session_manager
 from src.harm_classifier import HarmClassifier
+from src.mock_classifier import SCENARIO_NAMES, MockClassifier
 from src.models import EscalationRecord, ResponsePayload, Session, Turn
-
-_classifier = HarmClassifier()
 
 _RISK_ICON = {
     "Green": "🟢",
@@ -157,7 +156,7 @@ def render_dashboard(session: Session, turn_log: list, escalation_record) -> Non
 
 
 def handle_input(user_message: str, session: Session) -> ResponsePayload:
-    result = _classifier.classify(session, user_message)
+    result = st.session_state.classifier.classify(session, user_message)
     turn = Turn(
         turn_id=len(session.turns),
         user_message=user_message,
@@ -201,12 +200,21 @@ def run() -> None:
     if "session" not in st.session_state:
         st.caption("Left: what the minor sees. Right: real-time compliance data for the platform operator only.")
         is_minor = st.checkbox("I am under 18", value=True, key="age_checkbox")
+        st.divider()
+        use_demo = st.checkbox("Demo mode (no API key required)", value=False, key="demo_mode")
+        if use_demo:
+            st.selectbox("Demo scenario", options=SCENARIO_NAMES, key="scenario_select")
         if st.button("Start conversation"):
             age_group = "minor" if is_minor else "unknown"
             st.session_state.session = session_manager.create_session(age_group)
             st.session_state.messages = []
             st.session_state.turn_log = []
             st.session_state.escalation_record = None
+            if st.session_state.get("demo_mode"):
+                scenario = st.session_state.get("scenario_select", SCENARIO_NAMES[0])
+                st.session_state.classifier = MockClassifier(scenario)
+            else:
+                st.session_state.classifier = HarmClassifier()
             st.rerun()
         st.stop()
 
@@ -226,6 +234,15 @@ def run() -> None:
             for msg in st.session_state.messages:
                 with st.chat_message(msg["role"]):
                     st.markdown(msg["content"])
+
+        if (
+            isinstance(st.session_state.classifier, MockClassifier)
+            and len(session.turns) == 0
+            and not st.session_state.get("demo_autoplay")
+        ):
+            if st.button("▶ Run demo", type="primary", use_container_width=True):
+                st.session_state.demo_autoplay = True
+                st.rerun()
 
         if user_input := st.chat_input("Type your message..."):
             st.session_state.messages.append({"role": "user", "content": user_input})
@@ -249,6 +266,19 @@ def run() -> None:
                 st.session_state.turn_log,
                 st.session_state.escalation_record,
             )
+
+    if st.session_state.get("demo_autoplay"):
+        classifier = st.session_state.classifier
+        step = len(session.turns)
+        if isinstance(classifier, MockClassifier) and step < classifier.step_count:
+            time.sleep(7)
+            msg = classifier.get_step_message(step)
+            st.session_state.messages.append({"role": "user", "content": msg})
+            payload = handle_input(msg, session)
+            st.session_state.messages.append({"role": "assistant", "content": payload.message})
+            st.rerun()
+        else:
+            st.session_state.demo_autoplay = False
 
 
 if __name__ == "__main__":
