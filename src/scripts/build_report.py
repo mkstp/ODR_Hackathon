@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""build_report.py — Generate branded CBI two-pager PDF from a Markdown content file.
+"""build_report.py — Generate branded two-pager PDF from a Markdown content file.
 
 Usage (run from project root):
     python3 src/scripts/build_report.py docs/reports/two-pagers/<slug>/<slug>.md
@@ -21,8 +21,6 @@ import yaml
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.colors import HexColor
 from reportlab.pdfgen import canvas
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 
 # ── Page dimensions ───────────────────────────────────────────────────────────
 PAGE_W, PAGE_H   = letter           # 612 × 792 pt
@@ -35,11 +33,11 @@ MINI_HEADER_H    = 26
 FOOTER_H         = 28
 
 # ── Brand colors ──────────────────────────────────────────────────────────────
-C_DARK_TEAL  = HexColor('#1B4E6A')
-C_OLIVE      = HexColor('#8FAF3F')
+C_DARK_TEAL  = HexColor('#2E4057')
+C_OLIVE      = HexColor('#E8863A')
 C_BODY_GRAY  = HexColor('#595959')
 C_LIGHT_GRAY = HexColor('#EFEFEF')
-C_LIGHT_TEAL = HexColor('#E8F1F5')
+C_LIGHT_TEAL = HexColor('#ECF0F7')
 C_WHITE      = HexColor('#FFFFFF')
 
 # ── Type scale ────────────────────────────────────────────────────────────────
@@ -59,35 +57,13 @@ FONT_REG  = 'Helvetica'
 FONT_BOLD = 'Helvetica-Bold'
 
 PROJECT_ROOT  = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-LOGO_PATH     = os.path.join(PROJECT_ROOT, 'assets', 'images', 'CBI_Logo_Final.png')
-LOGO_WHITE_PATH = os.path.join(PROJECT_ROOT, 'assets', 'images', 'CBI_Logo_white.png')
+LOGO_PATH     = os.path.join(PROJECT_ROOT, 'assets', 'images', 'logo.png')
+LOGO_WHITE_PATH = os.path.join(PROJECT_ROOT, 'assets', 'images', 'logo_white.png')
 
 
 # ── Font registration ─────────────────────────────────────────────────────────
-def _find_font(name):
-    base = os.path.splitext(name)[0]
-    candidates = [
-        os.path.join(PROJECT_ROOT, 'assets', 'fonts', base + '.ttf'),
-        os.path.join(PROJECT_ROOT, 'assets', 'fonts', name),
-        os.path.expanduser(f'~/Library/Fonts/{name}'),
-        f'/Library/Fonts/{name}',
-    ]
-    return next((p for p in candidates if os.path.exists(p)), None)
-
-
 def register_fonts():
-    global FONT_REG, FONT_BOLD
-    reg  = _find_font('BentonSans-Regular.ttf')
-    bold = _find_font('BentonSans-Bold.ttf')
-    if reg:
-        pdfmetrics.registerFont(TTFont('BentonSans', reg))
-        FONT_REG = 'BentonSans'
-        print(f'  Font: BentonSans ({reg})')
-    else:
-        print('  Font: BentonSans not found — Helvetica fallback')
-    if bold:
-        pdfmetrics.registerFont(TTFont('BentonSans-Bold', bold))
-        FONT_BOLD = 'BentonSans-Bold'
+    print('  Font: Helvetica')
 
 
 # ── Text utilities ────────────────────────────────────────────────────────────
@@ -238,7 +214,7 @@ class Renderer:
             c.setFont(FONT_BOLD, SZ_TITLE)
             c.drawString(MARGIN, block_y - SZ_TITLE, title)
             c.setFont(FONT_REG, SZ_SUBTITLE)
-            c.setFillColor(HexColor('#5A9AB5'))   # steel blue — readable on dark teal
+            c.setFillColor(HexColor('#6B8CBE'))   # slate blue — readable on dark navy
             c.drawString(MARGIN, block_y - SZ_TITLE - 4 - SZ_SUBTITLE, subtitle)
         else:
             title_y = title_band_btm + 3 + (TITLE_BAND_H - 3) / 2 - SZ_TITLE / 2
@@ -267,7 +243,6 @@ class Renderer:
         c.line(MARGIN, FOOTER_H, PAGE_W - MARGIN, FOOTER_H)
         c.setFillColor(C_BODY_GRAY)
         c.setFont(FONT_REG, SZ_FOOTER)
-        c.drawString(MARGIN, FOOTER_H - 14, 'CBI')
         c.drawRightString(PAGE_W - MARGIN, FOOTER_H - 14, f'Page {self.page}')
 
     def _draw_meta_line(self, y):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""build_slides.py — Generate branded CBI PDF slide deck from a YAML content file.
+"""build_slides.py — Generate branded PDF slide deck from a YAML content file.
 
 Usage (run from project root):
     python3 src/scripts/build_slides.py docs/my_deck.yaml
@@ -16,12 +16,12 @@ Layouts:
     two-column     Two labeled panels (light gray / dark teal) side by side
     quote          Full dark teal; centered pull-quote
     stat           White; oversized metric number + label + context
-    about          CBI org info: teal header, about text left, address + offices right
+    about          Org info: teal header, about text left, address + offices right
 
 508 compliance notes:
     All text colors validated >= WCAG AA. Minimum body 16pt, footer 11pt.
-    Olive (#8FAF3F) used for decoration only — never as text on any background.
-    Steel blue (#5A9AB5) restricted to display text >= 18pt regular / >= 14pt bold.
+    Amber (#E8863A) used for decoration only — never as text on any background.
+    Slate blue (#6B8CBE) restricted to display text >= 18pt regular / >= 14pt bold.
     Progress bar uses color + "Section X of N" text (not color-only signalling).
     Run src/scripts/check_508.py to validate the design system.
 """
@@ -32,8 +32,6 @@ import yaml
 from reportlab.lib.pagesizes import landscape, letter
 from reportlab.lib.colors import HexColor, Color
 from reportlab.pdfgen import canvas
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 
 try:
     from chart_utils import render_chart as _render_chart
@@ -51,13 +49,13 @@ CONTENT_TOP    = PAGE_H - PROGRESS_H - 76   # 528 pt
 CONTENT_BTM    = FOOTER_H + 16              # 52 pt
 
 # ── Brand colors (508-validated) ──────────────────────────────────────────────
-# Dark Teal  #1B4E6A — 8.96:1 on white  — all sizes
+# Navy       #2E4057 — 10.57:1 on white — all sizes
 # Body Gray  #595959 — 7.00:1 on white  — all sizes
-# Steel Blue #5A9AB5 — 3.12:1 on white  — large text only (>=18pt / >=14pt bold)
-# Olive      #8FAF3F — 2.51:1 on white  — DECORATION ONLY, never text on white
-C_DARK_TEAL  = HexColor('#1B4E6A')
-C_STEEL_BLUE = HexColor('#5A9AB5')
-C_OLIVE      = HexColor('#8FAF3F')
+# Slate Blue #6B8CBE — 3.43:1 on white  — large text only (>=18pt / >=14pt bold)
+# Amber      #E8863A — 2.66:1 on white  — DECORATION ONLY, never text on white
+C_DARK_TEAL  = HexColor('#2E4057')
+C_STEEL_BLUE = HexColor('#6B8CBE')
+C_OLIVE      = HexColor('#E8863A')
 C_BODY_GRAY  = HexColor('#595959')
 C_LIGHT_GRAY = HexColor('#EFEFEF')
 C_WHITE      = HexColor('#FFFFFF')
@@ -81,34 +79,13 @@ FONT_REG  = 'Helvetica'
 FONT_BOLD = 'Helvetica-Bold'
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-LOGO_PATH       = os.path.join(PROJECT_ROOT, 'assets', 'images', 'CBI_Logo_Final.png')
-LOGO_WHITE_PATH = os.path.join(PROJECT_ROOT, 'assets', 'images', 'CBI_Logo_white.png')
-
-
-def _find_font(filename):
-    base = os.path.splitext(filename)[0]
-    candidates = [
-        os.path.join(PROJECT_ROOT, 'assets', 'fonts', base + '.ttf'),
-        os.path.join(PROJECT_ROOT, 'assets', 'fonts', filename),
-        os.path.expanduser(f'~/Library/Fonts/{filename}'),
-        f'/Library/Fonts/{filename}',
-    ]
-    return next((p for p in candidates if os.path.exists(p)), None)
+LOGO_PATH       = os.path.join(PROJECT_ROOT, 'assets', 'images', 'logo.png')
+LOGO_WHITE_PATH = os.path.join(PROJECT_ROOT, 'assets', 'images', 'logo_white.png')
 
 
 def register_fonts():
     global FONT_REG, FONT_BOLD
-    reg_path  = _find_font('BentonSans-Regular.otf')
-    bold_path = _find_font('BentonSans-Bold.otf')
-    if reg_path:
-        pdfmetrics.registerFont(TTFont('BentonSans', reg_path))
-        FONT_REG = 'BentonSans'
-        print(f'  Font: BentonSans-Regular ({reg_path})')
-    else:
-        print('  Font: BentonSans not found — Helvetica fallback')
-    if bold_path:
-        pdfmetrics.registerFont(TTFont('BentonSans-Bold', bold_path))
-        FONT_BOLD = 'BentonSans-Bold'
+    print('  Font: Helvetica')
 
 
 # ── Text utilities ────────────────────────────────────────────────────────────
@@ -167,7 +144,7 @@ def draw_venn(c, cx, cy, r=34, alpha=0.15):
     """Ghost Venn circles — decorative only, carries no information."""
     offset = r * 0.58
     circles = [
-        (cx,                cy + offset * 0.55, HexColor('#8FAF3F')),
+        (cx,                cy + offset * 0.55, HexColor('#E8863A')),
         (cx - offset * 0.6, cy - offset * 0.4,  HexColor('#7A7A7A')),
         (cx + offset * 0.6, cy - offset * 0.4,  HexColor('#6BBCD4')),
     ]
@@ -240,15 +217,10 @@ def draw_footer(c, page_num, presentation_title=''):
     c.setLineWidth(0.5)
     c.line(MARGIN, FOOTER_H, PAGE_W - MARGIN_R, FOOTER_H)
 
-    c.setFont(FONT_BOLD, SZ_FOOTER)
-    c.setFillColor(C_DARK_TEAL)
-    cbi_w = c.stringWidth('CBI', FONT_BOLD, SZ_FOOTER)
-    c.drawString(MARGIN, 14, 'CBI')
-
     if presentation_title:
         c.setFont(FONT_REG, SZ_FOOTER)
         c.setFillColor(C_BODY_GRAY)
-        c.drawString(MARGIN + cbi_w + 8, 14, f'|  {presentation_title}')
+        c.drawString(MARGIN, 14, presentation_title)
 
     # Dash above page number
     num_str = str(page_num)
@@ -721,7 +693,7 @@ def render_about(c, slide, page_num, ctx):
     ty = PAGE_H - HEADER_H - 36
 
     # Left column — about text
-    about_title = slide.get('about_title', 'About CBI')
+    about_title = slide.get('about_title', 'About Us')
     c.setFont(FONT_BOLD, SZ_SLIDE_TITLE)
     c.setFillColor(C_STEEL_BLUE)
     c.drawString(MARGIN, ty, about_title)

@@ -46,9 +46,9 @@ import matplotlib.ticker as mticker
 from reportlab.lib.utils import ImageReader
 
 # ── Brand palette — mirrors build_slides.py ───────────────────────────────────
-C_TEAL  = '#1B4E6A'
-C_STEEL = '#5A9AB5'
-C_OLIVE = '#8FAF3F'
+C_TEAL  = '#2E4057'
+C_STEEL = '#6B8CBE'
+C_OLIVE = '#E8863A'
 C_GRAY  = '#595959'
 C_LIGHT = '#EFEFEF'
 
@@ -60,7 +60,7 @@ COLOR_MAP = {
 }
 
 _STYLE_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'cbi.mplstyle')
+    os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'default.mplstyle')
 )
 
 

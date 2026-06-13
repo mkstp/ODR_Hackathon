@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""check_508.py — Validate the CBI slide design system against WCAG 2.1 AA / Section 508.
+"""check_508.py — Validate the slide design system against WCAG 2.1 AA / Section 508.
 
 Checks:
   1. Contrast ratios for every colour pair actually used in the design system
   2. Minimum font sizes for each text role
-  3. Olive (#8FAF3F) restricted to decoration only
+  3. Amber (#E8863A) restricted to decoration only
   4. Per-layout structural requirements (alt text, page numbers, progress bar, etc.)
 
 Usage:
@@ -48,7 +48,7 @@ def grade(ratio, is_large):
 
 def main():
     print()
-    print('CBI Slide Design System — WCAG 2.1 AA / 508 Validation')
+    print('Slide Design System — WCAG 2.1 AA / 508 Validation')
     print('=' * 60)
     all_pass = True
 
@@ -57,29 +57,29 @@ def main():
     # is_large=True when usage is always >= 18pt regular OR >= 14pt bold.
     TEXT_PAIRS = [
         # Dark teal on white — content, content-image, two-column, stat, agenda, about
-        ('#1B4E6A', '#FFFFFF', 'Dark teal — slide titles (22pt bold)',                     True),
-        ('#1B4E6A', '#FFFFFF', 'Dark teal — subheads (14pt bold)',                         True),
-        ('#1B4E6A', '#FFFFFF', 'Dark teal — body text (16pt regular)',                     False),
-        ('#1B4E6A', '#FFFFFF', 'Dark teal — office locations, about layout (14pt bold)',   True),
+        ('#2E4057', '#FFFFFF', 'Dark navy — slide titles (22pt bold)',                     True),
+        ('#2E4057', '#FFFFFF', 'Dark navy — subheads (14pt bold)',                         True),
+        ('#2E4057', '#FFFFFF', 'Dark navy — body text (16pt regular)',                     False),
+        ('#2E4057', '#FFFFFF', 'Dark navy — office locations, about layout (14pt bold)',   True),
         # Body gray on white — content, content-image, two-column, stat, agenda, about
         ('#595959', '#FFFFFF', 'Body gray — body text (16pt regular)',                     False),
         ('#595959', '#FFFFFF', 'Body gray — footer / progress label (11pt regular)',       False),
         ('#595959', '#FFFFFF', 'Body gray — about body + address text (15pt regular)',     False),
         # White on dark teal — section, quote, two-column right panel
-        ('#FFFFFF', '#1B4E6A', 'White — body text on full-teal slides (16pt regular)',     False),
-        ('#FFFFFF', '#1B4E6A', 'White — subheads on dark teal (14pt bold)',                True),
-        ('#FFFFFF', '#1B4E6A', 'White — two-column right panel body (16pt regular)',       False),
+        ('#FFFFFF', '#2E4057', 'White — body text on full-navy slides (16pt regular)',     False),
+        ('#FFFFFF', '#2E4057', 'White — subheads on dark teal (14pt bold)',                True),
+        ('#FFFFFF', '#2E4057', 'White — two-column right panel body (16pt regular)',       False),
         # Dark teal on light gray — two-column left panel
-        ('#1B4E6A', '#EFEFEF', 'Dark teal — labels on light gray panel (14pt bold)',       True),
+        ('#2E4057', '#EFEFEF', 'Dark navy — labels on light gray panel (14pt bold)',       True),
         # White on body gray — (reserved; no current text-on-gray-bg usage)
         ('#FFFFFF', '#595959', 'White — on body-gray backgrounds',                         False),
         # Body gray on light gray — footer rule area
         ('#595959', '#EFEFEF', 'Body gray — footer on light gray',                         False),
-        # Steel blue on white — about layout title and call-to-action
-        ('#5A9AB5', '#FFFFFF', 'Steel blue — About CBI title (22pt bold)',                 True),
-        ('#5A9AB5', '#FFFFFF', 'Steel blue — website call-to-action text (15pt bold)',     True),
-        # White on steel blue — agenda circle numbers (14pt bold after fix)
-        ('#FFFFFF', '#5A9AB5', 'White — numbers on steel blue agenda circles (14pt bold)', True),
+        # Slate blue on white — about layout title and call-to-action
+        ('#6B8CBE', '#FFFFFF', 'Slate blue — About title (22pt bold)',                     True),
+        ('#6B8CBE', '#FFFFFF', 'Slate blue — website call-to-action text (15pt bold)',     True),
+        # White on slate blue — agenda circle numbers (14pt bold after fix)
+        ('#FFFFFF', '#6B8CBE', 'White — numbers on steel blue agenda circles (14pt bold)', True),
     ]
 
     print()
@@ -96,10 +96,10 @@ def main():
 
     # ── 2. Olive decoration restriction ───────────────────────────
     print()
-    print('Olive Colour Restrictions  (#8FAF3F)')
+    print('Amber Colour Restrictions  (#E8863A)')
     print('-' * 60)
-    olive_white = contrast('#8FAF3F', '#FFFFFF')
-    olive_teal  = contrast('#8FAF3F', '#1B4E6A')
+    olive_white = contrast('#E8863A', '#FFFFFF')
+    olive_teal  = contrast('#E8863A', '#2E4057')
     print(f'  {DECOR}  {olive_white:.2f}:1  on white      — TEXT USE PROHIBITED')
     print(f'           Permitted: stat slide decorative rule only')
     print(f'  {DECOR}  {olive_teal:.2f}:1  on dark teal  — TEXT USE PROHIBITED')
@@ -153,7 +153,7 @@ def main():
         # agenda
         ('agenda',        'Standard footer with page number',                                     True),
         ('agenda',        'Items use number + text label (not number-only — not colour-only)',    True),
-        ('agenda',        'Circle numbers 14pt bold — meets AA large text on steel blue (3.12:1)', True),
+        ('agenda',        'Circle numbers 14pt bold — meets AA large text on slate blue (3.43:1)', True),
         # section
         ('section',       'Dark footer with page number',                                         True),
         ('section',       'image_alt field required in YAML',                                     True),
@@ -182,9 +182,9 @@ def main():
         ('stat',          'Olive decorative rule carries no information',                         True),
         # about
         ('about',         'Coloured logo bottom-left on white background',                        True),
-        ('about',         'Steel blue title 22pt bold — AA large text on white (3.12:1)',         True),
-        ('about',         'Steel blue website text 15pt bold — AA large text on white (3.12:1)', True),
-        ('about',         'Steel blue rule is decoration — right column labelled by address text', True),
+        ('about',         'Slate blue title 22pt bold — AA large text on white (3.43:1)',         True),
+        ('about',         'Slate blue website text 15pt bold — AA large text on white (3.43:1)', True),
+        ('about',         'Slate blue rule is decoration — right column labelled by address text', True),
         ('about',         'No page number — intentional (standalone org info slide)',             True),
     ]
 
