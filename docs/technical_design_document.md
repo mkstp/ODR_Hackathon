@@ -57,7 +57,8 @@ graph TD
 | Single Claude API call per turn (classify + respond) | Reduces latency and avoids context drift between a classification call and a separate generation call. The system prompt constrains the model to return structured JSON that includes both the classification metadata and the safe response text. |
 | In-memory session state | Sufficient for a hackathon demo; avoids database setup overhead. Session state is a Python dict keyed by session_id. |
 | Append-only JSONL escalation log | Lightweight persistence for ODR records without a database. JSONL format is human-readable and trivially parseable. |
-| Cumulative risk scoring with per-turn weighting | A single high-risk message should not automatically escalate to Red; patterns of repeated boundary-testing should. Weighting later turns more heavily in long sessions prevents early-session risk from diluting late escalation. |
+| Linear turn weighting for cumulative risk score | A single high-risk message should not automatically escalate to Red; patterns of repeated boundary-testing should. Turn index + 1 is used as the weight (normalized by the triangular sum), so later turns carry proportionally more influence. This makes escalation patterns legible and the score progression explainable: the longer a harmful pattern develops, the more each new turn compounds it. |
+| Injected session state + sliding window in API calls | LLM attention degrades for content in the middle of long contexts ("lost in the middle" effect). Rather than sending the full transcript and trusting the model to reconstruct risk from it, the current session state (risk level, cumulative score, harm categories detected) is injected as a structured block near the top of every API call, immediately after the system prompt. Only the last 5 turns of raw transcript are included. This externalizes memory to the PatternRiskTracker and keeps each API call compact regardless of conversation length. |
 | Streamlit for chat UI | Fastest path to a working demo with built-in widget support for a colored risk meter indicator. |
 | System prompt as external artifact (DEL-002) | Harm category definitions and risk thresholds require legal expertise. Decoupling the prompt from the code means the legal team can iterate on definitions without touching the pipeline. |
 
@@ -98,7 +99,7 @@ graph TD
 | Function | Signature | Returns | Description |
 |----------|-----------|---------|-------------|
 | `classify` | `(session: Session, user_message: str) -> ClassificationResult` | `ClassificationResult` | Builds API payload, calls Claude, parses and returns structured result |
-| `build_messages` | `(session: Session, user_message: str) -> list[map]` | `list[map]` | Constructs the messages array (conversation history + new turn) for the API call |
+| `build_messages` | `(session: Session, user_message: str, window: int) -> list[map]` | `list[map]` | Constructs the API payload: system prompt → injected session state block → last `window` turns (default 5) → current message |
 | `load_system_prompt` | `(path: str) -> str` | `str` | Reads the system prompt from file at the given path |
 | `parse_response` | `(raw_response: str) -> ClassificationResult` | `ClassificationResult` | Extracts structured JSON from the API response text |
 
@@ -354,7 +355,8 @@ flowchart LR
 
 ## Appendix B: Open Questions
 
-- [ ] What format should the system prompt use to return structured JSON? (Strict JSON only, or JSON embedded in natural language?) MOD-002's `parse_response` needs to know.
-- [ ] Should `user_age_group` be declared by the user at session start, or inferred from conversation context by the classifier?
-- [ ] Are crisis resources static strings (hardcoded) or fetched from a config file?
-- [ ] What is the per-turn weighting formula for `PatternRiskTracker.compute_turn_score`? (Linear, exponential, or recency-window?)
+- [x] **Turn weighting formula** — Resolved: linear weighting. Weight = turn_index + 1, normalized by triangular sum n(n+1)/2.
+- [x] **Lost-in-the-middle mitigation** — Resolved: inject structured session state block (risk level, cumulative score, harm categories detected) immediately after system prompt in every API call; include only the last 5 turns of raw transcript.
+- [x] **System prompt response format** — Resolved: pure JSON only. The system prompt instructs Claude to respond with a JSON object and nothing else. `parse_response` uses `json.loads()` directly and raises `ValueError` on malformed output.
+- [x] **`user_age_group` at session start** — Resolved: declared by the user. ChatUI presents a single "Are you under 18?" toggle before the first message; stored as `"minor"` or `"unknown"` on the Session.
+- [x] **Crisis resources sourcing** — Resolved: static list of strings in `src/constants.py`. No external fetch required for the prototype.
