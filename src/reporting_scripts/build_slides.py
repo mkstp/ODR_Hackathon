@@ -153,8 +153,8 @@ def draw_venn(c, cx, cy, r=34, alpha=0.15):
         c.circle(vx, vy, r, fill=1, stroke=0)
 
 
-def draw_image_zone(c, path, x, y, w, h, alt_text=''):
-    """Draw an image cropped to fill the zone. Falls back to a teal placeholder."""
+def draw_image_zone(c, path, x, y, w, h, alt_text='', fit='fill'):
+    """Draw an image into the zone. fit='fill' crops to fill; fit='contain' letterboxes."""
     if path:
         abs_path = path if os.path.isabs(path) else os.path.join(PROJECT_ROOT, path)
         if os.path.exists(abs_path):
@@ -162,16 +162,23 @@ def draw_image_zone(c, path, x, y, w, h, alt_text=''):
                 from reportlab.lib.utils import ImageReader
                 img    = ImageReader(abs_path)
                 iw, ih = img.getSize()
-                scale  = max(w / iw, h / ih)
-                sw, sh = iw * scale, ih * scale
-                dx     = (sw - w) / 2
-                dy     = (sh - h) / 2
-                c.saveState()
-                p = c.beginPath()
-                p.rect(x, y, w, h)
-                c.clipPath(p, stroke=0, fill=0)
-                c.drawImage(abs_path, x - dx, y - dy, width=sw, height=sh, mask='auto')
-                c.restoreState()
+                if fit == 'contain':
+                    scale  = min(w / iw, h / ih)
+                    sw, sh = iw * scale, ih * scale
+                    ox     = x + (w - sw) / 2
+                    oy     = y + (h - sh) / 2
+                    c.drawImage(abs_path, ox, oy, width=sw, height=sh, mask='auto')
+                else:
+                    scale  = max(w / iw, h / ih)
+                    sw, sh = iw * scale, ih * scale
+                    dx     = (sw - w) / 2
+                    dy     = (sh - h) / 2
+                    c.saveState()
+                    p = c.beginPath()
+                    p.rect(x, y, w, h)
+                    c.clipPath(p, stroke=0, fill=0)
+                    c.drawImage(abs_path, x - dx, y - dy, width=sw, height=sh, mask='auto')
+                    c.restoreState()
                 return
             except Exception:
                 pass
@@ -506,7 +513,8 @@ def render_content_image(c, slide, page_num, ctx):
         draw_image_zone(c, '', IMG_X, IMG_Y, IMG_W, IMG_H, alt_text='Chart (matplotlib not installed)')
     else:
         draw_image_zone(c, slide.get('image', ''), IMG_X, IMG_Y, IMG_W, IMG_H,
-                        alt_text=slide.get('image_alt', ''))
+                        alt_text=slide.get('image_alt', ''),
+                        fit=slide.get('image_fit', 'fill'))
 
     caption = slide.get('caption', '')
     if caption:
@@ -790,6 +798,28 @@ def render_chart_slide(c, slide, page_num, ctx):
     draw_footer(c, page_num, ctx.get('title', ''))
 
 
+def render_full_image(c, slide, page_num, ctx):
+    """Full-slide image. Optional title renders as a semi-transparent caption bar at the bottom."""
+    c.setFillColor(C_WHITE)
+    c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
+
+    title = slide.get('title', '')
+    cap_h = 38 if title else 0
+
+    draw_image_zone(c, slide.get('image', ''), 0, cap_h, PAGE_W, PAGE_H - cap_h,
+                    alt_text=slide.get('image_alt', ''),
+                    fit=slide.get('image_fit', 'contain'))
+
+    if title:
+        c.setFillColor(Color(C_DARK_TEAL.red, C_DARK_TEAL.green, C_DARK_TEAL.blue, alpha=0.88))
+        c.rect(0, 0, PAGE_W, cap_h, fill=1, stroke=0)
+        c.setFont(FONT_BOLD, SZ_SUBHEAD)
+        c.setFillColor(C_WHITE)
+        c.drawCentredString(PAGE_W / 2, 13, title)
+
+    draw_dark_footer(c, page_num)
+
+
 # ── Dispatcher ────────────────────────────────────────────────────────────────
 RENDERERS = {
     'cover':         render_cover,
@@ -803,6 +833,7 @@ RENDERERS = {
     'quote':         render_quote,
     'stat':          render_stat,
     'about':         render_about,
+    'full-image':    render_full_image,
 }
 
 

@@ -17,7 +17,8 @@ MinorSafe detects legally risky and emotionally harmful conversation patterns as
 - **In scope:** Slide deck covering full product vision
 - **Out of scope:** Parent/guardian notification dashboard (deck-only)
 - **Out of scope:** Full cross-border ODR framework (deck-only)
-- **Out of scope:** Smart contract implementation (deck-only)
+- **In scope:** Smart contract simulation layer — pre-dispute prevention automation (clause-based intervention at Yellow / Orange / Red) and dispute-trigger automation (ODR case opened at Red)
+- **Out of scope:** Post-dispute smart contract enforcement (settlement and award execution) — deck-only
 
 ## Validation Conditions
 

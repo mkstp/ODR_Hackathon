@@ -10,7 +10,7 @@ import streamlit as st
 
 load_dotenv()
 
-from src import odr_escalation_trigger, pattern_risk_tracker, response_controller, session_manager
+from src import odr_escalation_trigger, pattern_risk_tracker, response_controller, session_manager, smart_contract
 from src.harm_classifier import HarmClassifier
 from src.mock_classifier import SCENARIO_NAMES, MockClassifier
 from src.models import EscalationRecord, ResponsePayload, Session, Turn
@@ -141,13 +141,26 @@ def _render_escalation_record(record: EscalationRecord) -> None:
         st.markdown(f"**Categories:** {', '.join(record.harm_categories_detected)}")
 
 
-def render_dashboard(session: Session, turn_log: list, escalation_record) -> None:
+def _render_active_clause(clause) -> None:
+    if clause is None:
+        return
+    with st.container(border=True):
+        st.markdown(f"**`{clause['key']}`** — {clause['description']}")
+        st.caption(f"Action: `{clause['action']}`")
+
+
+def render_dashboard(session: Session, turn_log: list, escalation_record, active_clause=None) -> None:
     render_risk_meter(session.risk_level)
     st.divider()
     _render_risk_chart(turn_log)
     if turn_log:
         st.divider()
         _render_latest_classification(turn_log[-1])
+    st.divider()
+    st.markdown("**Smart Contract**")
+    _render_active_clause(active_clause)
+    if active_clause is None:
+        st.caption("No clause active — risk below Yellow threshold.")
     st.divider()
     _render_session_summary(session, turn_log)
     if session.escalated and escalation_record:
@@ -165,6 +178,7 @@ def handle_input(user_message: str, session: Session) -> ResponsePayload:
     )
     session_manager.add_turn(session, turn)
     pattern_risk_tracker.update(session, result)
+    st.session_state.active_clause = smart_contract.evaluate(session)
     st.session_state.turn_log.append({
         "turn": len(session.turns),
         "cumulative_score": session.cumulative_risk_score,
@@ -223,6 +237,8 @@ def run() -> None:
         st.session_state.turn_log = []
     if "escalation_record" not in st.session_state:
         st.session_state.escalation_record = None
+    if "active_clause" not in st.session_state:
+        st.session_state.active_clause = None
 
     session: Session = st.session_state.session
     left, right = st.columns([3, 2], gap="large")
@@ -265,6 +281,7 @@ def run() -> None:
                 session,
                 st.session_state.turn_log,
                 st.session_state.escalation_record,
+                active_clause=st.session_state.get("active_clause"),
             )
 
     if st.session_state.get("demo_autoplay"):

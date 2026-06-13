@@ -196,6 +196,20 @@
           "status": "pending"
         }
       ]
+    },
+    {
+      "id": "MOD-007",
+      "name": "SmartContract",
+      "source": "src/smart_contract.py",
+      "implements": "DEL-001",
+      "validated_by": [],
+      "tests": [
+        {
+          "path": "unit/test_smart_contract.py",
+          "description": "Unit tests for SmartContract.evaluate: clause selection at all threshold boundaries, forced-Red override, and result field completeness.",
+          "status": "passing"
+        }
+      ]
     }
   ],
 
@@ -276,8 +290,8 @@
       "notes": "DEL-002 and DEL-003 are non-code artifacts; DEL-002 covered by manual checklist MC-001."
     },
     "modules": {
-      "total": 6,
-      "with_unit_tests": 6
+      "total": 7,
+      "with_unit_tests": 7
     }
   }
 }

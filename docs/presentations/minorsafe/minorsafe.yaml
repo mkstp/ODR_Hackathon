@@ -1,0 +1,139 @@
+title: "MinorSafe: AI Safety for Minors with an ODR Backbone"
+subtitle: "Online Dispute Prevention Before It Becomes a Case"
+author: "Marc St-Pierre, Gregory Watford, Michael Fang"
+date: "June 2026"
+sections:
+  - "The Problem"
+  - "MinorSafe"
+  - "Built by Experts"
+
+slides:
+
+- layout: cover
+  title: "MinorSafe"
+  subtitle: "Online Dispute Prevention for AI Interactions with Minors"
+  meta: "June 2026  |  Marc St-Pierre · Gregory Watford · Michael Fang"
+  image: assets/images/minorsafe/cover.png
+  image_alt: "Teenager's hands on a laptop keyboard in soft afternoon light"
+  image_prompt: "Professional documentary photograph, 16:9 landscape. A young teenager's hands resting on a laptop keyboard, soft afternoon light from a window catching the keys. The background is dark and blurred, navy and teal tones. The mood is calm but the stakes feel present. No screen content visible. No text overlays. Colors complement deep teal #1B4E6A."
+
+- layout: content
+  section: "The Problem"
+  title: "Who's Responsible When AI Harms a Minor?"
+  subhead: "The Stakes"
+  body:
+    - "Minors are already in AI conversations — at scale, without specialized safeguards"
+    - "Recent litigation has raised unresolved questions about platform duty of care"
+    - text: "Foreseeability of harm, cross-border enforcement, and accountability are all open questions"
+      level: 2
+    - "The industry needs a proactive answer — not more reactive filters"
+
+- layout: section
+  title: "The Problem"
+  subhead: "Section 1"
+  image: assets/images/minorsafe/section_problem.png
+  image_alt: "Young person looking at a glowing phone screen in a dim room"
+  image_prompt: "Professional documentary photograph, 2:3 portrait orientation. A young person looking at a glowing phone screen in a dim room, face partially illuminated, expression uncertain. The image conveys vulnerability and unguarded attention. Background dark and out of focus. Colors: cool blue, teal, dark navy. No text overlays."
+
+- layout: content
+  section: "The Problem"
+  title: "Existing Safeguards Ask the Wrong Question"
+  subhead: "The Gap"
+  body:
+    - "Content moderation evaluates individual responses in isolation"
+    - "It cannot detect risk patterns developing across multiple turns"
+    - text: "A grooming attempt doesn't happen in one message — it builds over a conversation"
+      level: 2
+    - "No existing system tracks cumulative session risk as a session evolves"
+    - text: "By the time a harmful response is produced, the harm has already begun"
+      level: 2
+
+- layout: section
+  title: "MinorSafe"
+  subhead: "Section 2"
+  image: assets/images/minorsafe/section_minorsafe.png
+  image_alt: "Adult and young person looking at a laptop screen together"
+  image_prompt: "Professional documentary photograph, 2:3 portrait orientation. A responsible adult and a young person seated together, both looking at a laptop screen. The adult's posture conveys attentive protection. Warm but professional lighting. Colors complement deep teal #1B4E6A. No text overlays."
+
+- layout: content
+  section: "MinorSafe"
+  title: "Online Dispute Prevention — Not Moderation"
+  subhead: "Our Approach"
+  body:
+    - "MinorSafe reframes the question: is this conversation becoming dangerous?"
+    - "ODP intervenes before harm is produced — not after a refusal is triggered"
+    - "Four risk levels — Green, Yellow, Orange, Red — with proportionate responses at each"
+    - "At Red, the system doesn't just refuse: it opens an ODR process automatically"
+
+- layout: content
+  section: "MinorSafe"
+  title: "A Five-Module Detection Pipeline"
+  subhead: "Architecture"
+  body:
+    - "Session opens: Age-Aware Classifier identifies the user as a minor"
+    - "Each turn: Legal-Harm Classifier maps the message to one of 14 harm categories"
+    - "After each turn: Pattern-Risk Tracker updates cumulative session risk score"
+    - "Response Controller delivers proportionate output — standard, warning, restricted, or refusal"
+    - "At Red: ODR Escalation Trigger opens a case with the full session context logged"
+
+- layout: content
+  section: "MinorSafe"
+  title: "A Working Prototype — Ready to Demo Today"
+  subhead: "What We Built"
+  body:
+    - "Full pipeline runs end-to-end via the Claude API with a live expert-authored system prompt"
+    - "Dual-pane Streamlit UI: minor's chat view and platform compliance dashboard side by side"
+    - "Dashboard shows real-time risk meter, trajectory, classification panel, and active smart contract clause"
+    - "Three scripted demo scenarios auto-advance with narration time built in"
+
+- layout: full-image
+  title: "Smart Contracts Bridge ODP and ODR"
+  image: assets/images/minorsafe/smart_contracts.png
+  image_alt: "Infographic showing the ODP to ODR to Smart Contract enforcement pipeline with IF/THEN clause logic and cross-jurisdiction fund breakdown"
+  image_fit: contain
+
+- layout: section
+  title: "Built by Experts"
+  subhead: "Section 3"
+  image: assets/images/minorsafe/section_experts.png
+  image_alt: "Legal document beside an open laptop on a desk"
+  image_prompt: "Professional documentary photograph, 2:3 portrait orientation. A close-up of a printed legal document beside an open laptop, both in sharp focus. The scene suggests expert review and careful design. Neutral desk surface, soft overhead lighting. Colors: navy, teal, white paper tones. No text overlays."
+
+- layout: content
+  section: "Built by Experts"
+  title: "14 Harm Categories — Authored by Legal Experts"
+  subhead: "Legal Expertise"
+  body:
+    - "Gregory Watford and Michael Fang authored the classification system — not engineers"
+    - "14 legally defined harm categories with precise risk thresholds and response rules"
+    - "Categories span criminal liability, cyberbullying, grooming, self-harm, emotional dependency, and more"
+    - "The system prompt is the live engine — directly governing every API call in the prototype"
+
+- layout: content
+  section: "Built by Experts"
+  title: "AI Infrastructure Engineered for Real-Time Safety"
+  subhead: "Computational Expertise"
+  body:
+    - "Prompt caching: system prompt sent with cache_control ephemeral — reducing latency and API cost"
+    - "Sliding context window: only the last 5 turns are sent per call, addressing the 'lost in the middle' problem"
+    - "Session state injection: structured risk state block appended after the system prompt on every call"
+    - "Linear turn weighting: later turns carry proportionally more influence — harm patterns compound over time"
+
+- layout: closing
+  title: "Thank You"
+  contact: "Marc St-Pierre · Gregory Watford · Michael Fang"
+  website: "github.com/mkstp/ODR_Hackathon"
+  image: assets/images/minorsafe/closing.png
+  image_alt: "Calm workspace with laptop and window light"
+  image_prompt: "Professional documentary photograph, 16:9 landscape. A calm workspace — a desk with a closed laptop and papers, soft window light casting long shadows across the surface. The scene conveys resolution and clarity. Colors: teal and navy tones in shadow, warm neutral light. No text overlays."
+
+- layout: about
+  about_title: "The Team"
+  about_body:
+    - "MinorSafe was built at the vibeODR Hackathon, June 2026."
+    - "Marc St-Pierre, Gregory Watford, and Michael Fang collaborated to build MinorSafe. The team combined AI engineering, legal expertise, and harm category design to deliver a working prototype in a single day."
+  website: "github.com/mkstp/ODR_Hackathon"
+  address:
+    - ""
+  offices:
+    - ""
