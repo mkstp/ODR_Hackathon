@@ -8,11 +8,11 @@
 - Approval type: Sign-off
 - Milestone: All major decisions
 
-**STK-002** — Gregory Wataro · Team Member
+**STK-002** — Gregory Watford · Team Member
 - Approval type: Inform
 - Milestone: TBD
 
-**STK-003** — Michael Fong · Team Member
+**STK-003** — Michael Fang · Team Member
 - Approval type: Inform
 - Milestone: TBD
 

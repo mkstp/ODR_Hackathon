@@ -109,8 +109,8 @@ Parent/guardian dashboard, full cross-border ODR framework, and smart contract i
 ## Team
 
 - Marc St-Pierre
-- Gregory Wataro
-- Michael Fong
+- Gregory Watford
+- Michael Fang
 
 ---
 
@@ -146,7 +146,7 @@ streamlit run src/chat_ui.py
 | Variable / File | Purpose | Default |
 |----------------|---------|---------|
 | `ANTHROPIC_API_KEY` | Claude API authentication | required |
-| `SYSTEM_PROMPT_PATH` | Path to the system prompt spec file | `docs/system_prompt.txt` |
+| `SYSTEM_PROMPT_PATH` | Path to the system prompt spec file | `system_prompt.md` |
 | `ESCALATION_LOG_PATH` | Path for the ODR escalation JSONL log | `escalation_log.jsonl` |
 
 Copy `.env.example` to `.env` and fill in values before running.
@@ -172,12 +172,16 @@ See `tests/README.md` for a full description of test categories and traceability
 ODR_Hackathon/
 ├── src/
 │   ├── models.py                  # Data structures (Session, Turn, ClassificationResult, etc.)
+│   ├── constants.py               # Shared constants and default paths
 │   ├── session_manager.py         # MOD-001: SessionManager
 │   ├── harm_classifier.py         # MOD-002: HarmClassifier
+│   ├── mock_classifier.py         # Scenario-based mock for UI development
 │   ├── pattern_risk_tracker.py    # MOD-003: PatternRiskTracker
 │   ├── response_controller.py     # MOD-004: ResponseController
 │   ├── odr_escalation_trigger.py  # MOD-005: ODREscalationTrigger
-│   └── chat_ui.py                 # MOD-006: ChatUI (Streamlit)
+│   ├── smart_contract.py          # Smart contract simulation layer
+│   ├── chat_ui.py                 # MOD-006: ChatUI (Streamlit)
+│   └── reporting_scripts/         # Slide and report build utilities
 ├── tests/
 │   ├── manifest.json              # Traceability map (VCs → DELs → MODs → tests)
 │   ├── README.md                  # Test suite documentation
@@ -190,7 +194,10 @@ ODR_Hackathon/
 │   ├── project_charter.md
 │   ├── deliverables.md
 │   ├── technical_design_document.md
-│   └── system_prompt_guide.md
+│   ├── system_prompt_guide.md
+│   └── presentations/             # Slide deck source (YAML + images)
+├── assets/                        # Images and reference materials
+├── system_prompt.md               # MinorSafe system prompt (DEL-002)
 ├── requirements.txt
 └── README.md
 ```
