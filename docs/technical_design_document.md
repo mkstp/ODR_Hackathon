@@ -107,6 +107,9 @@ graph TD
 - **Internal:** MOD-001 (Session)
 - **External:** `anthropic` (Claude API client), `json` (stdlib)
 
+**Context engineering — prompt caching:**  
+The system prompt is passed to the API with `cache_control: {type: "ephemeral"}`, activating Anthropic's prompt caching feature. The first call in a session processes the full system prompt; subsequent calls within a 5-minute window are served from cache. Cached input tokens are billed at ~10% of the standard rate, and cache hits reduce latency on every turn. This is the primary mitigation for performance impact from a long system prompt (DEL-002).
+
 **Validated by:** VC-001, VC-003
 
 ---

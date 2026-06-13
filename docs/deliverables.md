@@ -16,4 +16,11 @@ Justification: Required by the pipeline before any classifier logic can be imple
 A slide deck covering the full MinorSafe product vision, including architecture, risk levels, harm categories, ODR escalation layer, and features scoped out of the prototype (parent/guardian dashboard, smart contract enforcement).
 Justification: The hackathon presentation artifact; communicates the full vision beyond what the prototype demonstrates.
 
+Required topics:
+- Core detection pipeline and risk meter (prototype demo)
+- Harm categories and risk thresholds
+- ODR escalation ladder (negotiation → mediation → arbitration → enforcement)
+- Age classification and jurisdiction architecture: MinorSafe operates as middleware that receives a verified `user_age_group` from the integrating platform (which handles KYC and parental consent). Jurisdiction is inferred from IP geolocation at session start and used to apply the correct legal definition of minor (e.g. under-18 most jurisdictions, under-16 for certain EU digital rights contexts). This architecture directly addresses the "how do you know they're actually a minor?" objection — MinorSafe does not self-certify age; it trusts platform-level verification and applies jurisdiction-appropriate thresholds.
+- Out-of-scope features for production (parent/guardian dashboard, smart contract enforcement)
+
 ---

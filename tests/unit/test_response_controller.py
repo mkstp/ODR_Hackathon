@@ -1,206 +1,86 @@
 """
-Test: Unit tests for ResponseController
-
-Module: MOD-004
-Implements: DEL-001
-Purpose: Selects a risk-appropriate response message and determines whether
-         ODR escalation should be triggered.
-
-Public Interface:
-- generate_response(session: Session) -> ResponsePayload
-- should_escalate(session: Session) -> bool
+Unit tests for ResponseController (MOD-004).
 """
 
 import pytest
-from unittest.mock import MagicMock
+from src import response_controller as rc
+from src.constants import CRISIS_RESOURCES, ORANGE_RESTRICTED_PREFIX, YELLOW_WARNING_PREFIX
+from src.models import ClassificationResult
 
 
-# TODO: Uncomment once src/response_controller.py exists
-# from src.response_controller import ResponseController
-# from src.models import ResponsePayload
+@pytest.fixture
+def safe_result():
+    return ClassificationResult(
+        harm_category="none",
+        risk_level="Green",
+        turn_risk_score=0.05,
+        safe_redirect="Happy to help with that.",
+    )
 
 
 class TestGenerateResponse:
-    """Tests for ResponseController.generate_response — one per risk level."""
 
-    def test_green_response_message_is_neutral(self, fresh_session):
-        """
-        Given: A session at Green risk
-        When: generate_response(session) is called
-        Then: ResponsePayload.message is non-empty and ResponsePayload.risk_level == "Green"
+    def test_green_uses_safe_redirect_as_message(self, fresh_session, safe_result):
+        fresh_session.risk_level = "Green"
+        payload = rc.generate_response(fresh_session, safe_result)
+        assert payload.risk_level == "Green"
+        assert payload.message == safe_result.safe_redirect
+        assert payload.crisis_resources == []
 
-        Validates: MOD-004, VC-003, DEL-001
-        """
-        # Arrange
-        fresh_session["risk_level"] = "Green"
-        controller = MagicMock()
-        controller.generate_response.return_value = {
-            "risk_level": "Green",
-            "message": "Happy to help! What's on your mind?",
-            "crisis_resources": [],
-            "escalation_triggered": False,
-        }
+    def test_yellow_prefixes_message_with_warning(self, fresh_session, safe_result):
+        fresh_session.risk_level = "Yellow"
+        payload = rc.generate_response(fresh_session, safe_result)
+        assert payload.risk_level == "Yellow"
+        assert payload.message.startswith(YELLOW_WARNING_PREFIX)
+        assert safe_result.safe_redirect in payload.message
+        assert payload.crisis_resources == []
 
-        # Act
-        # TODO: Replace with real call: controller = ResponseController(); payload = controller.generate_response(fresh_session)
-        payload = controller.generate_response(fresh_session)
+    def test_orange_prefixes_message_and_mentions_trusted_adult(self, fresh_session, safe_result):
+        fresh_session.risk_level = "Orange"
+        payload = rc.generate_response(fresh_session, safe_result)
+        assert payload.risk_level == "Orange"
+        assert payload.message.startswith(ORANGE_RESTRICTED_PREFIX)
+        assert "trusted adult" in payload.message.lower()
+        assert payload.crisis_resources == []
 
-        # Assert
-        assert False, (
-            "Not implemented: verify payload['risk_level'] == 'Green' and payload['message'] != ''"
+    def test_red_includes_crisis_resources(self, red_session):
+        result = ClassificationResult(
+            harm_category="self_harm", risk_level="Red",
+            turn_risk_score=0.9, safe_redirect="Please reach out.",
         )
+        payload = rc.generate_response(red_session, result)
+        assert payload.risk_level == "Red"
+        assert len(payload.crisis_resources) > 0
+        assert payload.crisis_resources == CRISIS_RESOURCES
 
-    def test_yellow_response_message_contains_redirect(self, fresh_session):
-        """
-        Given: A session at Yellow risk
-        When: generate_response(session) is called
-        Then: ResponsePayload.message includes a redirect cue (e.g., reference to a trusted adult)
-
-        Validates: MOD-004, VC-003, DEL-001
-        """
-        # Arrange
-        fresh_session["risk_level"] = "Yellow"
-        fresh_session["cumulative_risk_score"] = 0.42
-        controller = MagicMock()
-        controller.generate_response.return_value = {
-            "risk_level": "Yellow",
-            "message": "That's something a trusted adult could really help you with.",
-            "crisis_resources": [],
-            "escalation_triggered": False,
-        }
-
-        # Act
-        payload = controller.generate_response(fresh_session)
-
-        # Assert
-        assert False, (
-            "Not implemented: verify payload['risk_level'] == 'Yellow' "
-            "and 'trusted' or 'adult' appears in payload['message']"
+    def test_red_escalation_triggered_when_not_yet_escalated(self, red_session):
+        result = ClassificationResult(
+            harm_category="self_harm", risk_level="Red",
+            turn_risk_score=0.9, safe_redirect="",
         )
+        payload = rc.generate_response(red_session, result)
+        assert payload.escalation_triggered is True
 
-    def test_orange_response_message_references_professional(self, fresh_session):
-        """
-        Given: A session at Orange risk
-        When: generate_response(session) is called
-        Then: ResponsePayload.message references professional or counsellor support
-
-        Validates: MOD-004, VC-003, DEL-001
-        """
-        # Arrange
-        fresh_session["risk_level"] = "Orange"
-        fresh_session["cumulative_risk_score"] = 0.67
-        controller = MagicMock()
-        controller.generate_response.return_value = {
-            "risk_level": "Orange",
-            "message": "I think speaking with a counsellor would really help you right now.",
-            "crisis_resources": [],
-            "escalation_triggered": False,
-        }
-
-        # Act
-        payload = controller.generate_response(fresh_session)
-
-        # Assert
-        assert False, (
-            "Not implemented: verify payload['risk_level'] == 'Orange' "
-            "and 'counsellor' or 'professional' appears in payload['message']"
+    def test_red_not_retriggered_if_already_escalated(self, red_session):
+        red_session.escalated = True
+        result = ClassificationResult(
+            harm_category="self_harm", risk_level="Red",
+            turn_risk_score=0.9, safe_redirect="",
         )
-
-    def test_red_response_crisis_resources_is_non_empty(self, red_session):
-        """
-        Given: A session at Red risk
-        When: generate_response(session) is called
-        Then: ResponsePayload.crisis_resources is a non-empty list
-
-        Validates: MOD-004, VC-002, VC-003, DEL-001
-        """
-        # Arrange
-        controller = MagicMock()
-        controller.generate_response.return_value = {
-            "risk_level": "Red",
-            "message": "I'm very concerned. Please reach out right now.",
-            "crisis_resources": ["Kids Help Phone: 1-800-668-6868"],
-            "escalation_triggered": True,
-        }
-
-        # Act
-        payload = controller.generate_response(red_session)
-
-        # Assert
-        assert False, (
-            "Not implemented: verify payload['crisis_resources'] is a non-empty list "
-            "when risk_level == 'Red'"
-        )
+        payload = rc.generate_response(red_session, result)
+        assert payload.escalation_triggered is False
 
 
 class TestShouldEscalate:
-    """Tests for ResponseController.should_escalate"""
 
-    def test_should_escalate_returns_true_for_red_not_escalated(self, red_session):
-        """
-        Given: A session at Red risk that has not yet been escalated
-        When: should_escalate(session) is called
-        Then: Returns True
+    def test_true_for_red_not_escalated(self, red_session):
+        assert rc.should_escalate(red_session) is True
 
-        Validates: MOD-004, VC-002, DEL-001
-        """
-        # Arrange
-        assert red_session["risk_level"] == "Red"
-        assert red_session["escalated"] is False
-        controller = MagicMock()
-        controller.should_escalate.return_value = True
+    def test_false_when_already_escalated(self, red_session):
+        red_session.escalated = True
+        assert rc.should_escalate(red_session) is False
 
-        # Act
-        # TODO: Replace with real call: result = ResponseController().should_escalate(red_session)
-        result = controller.should_escalate(red_session)
-
-        # Assert
-        assert False, (
-            "Not implemented: verify should_escalate returns True "
-            "when risk_level == 'Red' and escalated == False"
-        )
-
-    def test_should_escalate_returns_false_when_already_escalated(self, red_session):
-        """
-        Given: A session at Red risk that is already escalated
-        When: should_escalate(session) is called
-        Then: Returns False
-
-        Validates: MOD-004, VC-002, DEL-001
-        """
-        # Arrange
-        red_session["escalated"] = True
-        controller = MagicMock()
-        controller.should_escalate.return_value = False
-
-        # Act
-        result = controller.should_escalate(red_session)
-
-        # Assert
-        assert False, (
-            "Not implemented: verify should_escalate returns False "
-            "when escalated == True, even at Red risk"
-        )
-
-    def test_should_escalate_returns_false_for_non_red(self, fresh_session):
-        """
-        Given: A session at Green or Yellow or Orange risk
-        When: should_escalate(session) is called
-        Then: Returns False
-
-        Validates: MOD-004, VC-002, DEL-001
-        """
-        # Arrange
-        fresh_session["risk_level"] = "Orange"
-        fresh_session["cumulative_risk_score"] = 0.72
-        controller = MagicMock()
-        controller.should_escalate.return_value = False
-
-        # Act
-        result = controller.should_escalate(fresh_session)
-
-        # Assert
-        assert False, (
-            "Not implemented: verify should_escalate returns False "
-            "for risk_level in ('Green', 'Yellow', 'Orange')"
-        )
+    def test_false_for_non_red_risk_levels(self, fresh_session):
+        for level in ("Green", "Yellow", "Orange"):
+            fresh_session.risk_level = level
+            assert rc.should_escalate(fresh_session) is False

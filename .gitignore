@@ -61,3 +61,4 @@ archive*
 # Logs
 *.log
 
+escalation_log.jsonl

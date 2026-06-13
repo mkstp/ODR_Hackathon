@@ -1,126 +1,74 @@
 """
-Test: Unit tests for ChatUI
+Unit tests for ChatUI.handle_input (MOD-006).
 
-Module: MOD-006
-Implements: DEL-001
-Purpose: Streamlit interface with risk meter. Calls pipeline modules in sequence
-         when a user submits a message.
-
-Public Interface:
-- handle_input(user_message: str, session: Session) -> tuple[Session, ResponsePayload]
-
-Note: Streamlit rendering is not tested here. Only the handle_input orchestration
-logic is covered — all pipeline module calls are mocked.
+Tests the orchestration logic only — Streamlit rendering is not tested.
+The HarmClassifier is mocked to avoid live API calls.
 """
 
 import pytest
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import patch, MagicMock
+
+from src.models import ClassificationResult, ResponsePayload
 
 
-# TODO: Uncomment once src/chat_ui.py exists
-# from src.chat_ui import ChatUI
+MOCK_RESULT = ClassificationResult(
+    harm_category="none",
+    risk_level="Green",
+    turn_risk_score=0.05,
+    safe_redirect="Happy to help!",
+)
 
 
 class TestHandleInput:
-    """Tests for ChatUI.handle_input orchestration."""
 
-    def test_handle_input_calls_classifier_first(self, fresh_session, mock_claude_client):
-        """
-        Given: A user message and a fresh session
-        When: handle_input() is called
-        Then: HarmClassifier.classify() is invoked before any other pipeline stage
+    def test_handle_input_returns_response_payload(self, fresh_session):
+        with patch("src.chat_ui._classifier") as mock_clf:
+            mock_clf.classify.return_value = MOCK_RESULT
+            from src.chat_ui import handle_input
+            payload = handle_input("Hello", fresh_session)
+        assert isinstance(payload, ResponsePayload)
+        assert payload.risk_level == "Green"
 
-        Validates: MOD-006, VC-001, DEL-001
-        """
-        # Arrange
+    def test_handle_input_adds_turn_to_session(self, fresh_session):
+        with patch("src.chat_ui._classifier") as mock_clf:
+            mock_clf.classify.return_value = MOCK_RESULT
+            from src.chat_ui import handle_input
+            handle_input("Hello", fresh_session)
+        assert len(fresh_session.turns) == 1
+        assert fresh_session.turns[0].user_message == "Hello"
+
+    def test_handle_input_calls_classifier_before_tracker(self, fresh_session):
         call_order = []
+        mock_result = MOCK_RESULT
 
-        classifier = MagicMock()
-        classifier.classify.side_effect = lambda *a, **kw: call_order.append("classifier") or {
-            "harm_category": "none",
-            "risk_level": "Green",
-            "turn_risk_score": 0.05,
-            "reasoning": "",
-            "safe_redirect": "",
-        }
+        with patch("src.chat_ui._classifier") as mock_clf, \
+             patch("src.chat_ui.pattern_risk_tracker") as mock_tracker:
+            mock_clf.classify.side_effect = lambda *a, **kw: (
+                call_order.append("classify") or mock_result
+            )
+            mock_tracker.update.side_effect = lambda s, r: (
+                call_order.append("update") or s
+            )
+            from src.chat_ui import handle_input
+            handle_input("Hello", fresh_session)
 
-        tracker = MagicMock()
-        tracker.compute_cumulative_score.side_effect = lambda *a, **kw: call_order.append("tracker") or 0.05
-        tracker.compute_risk_level.return_value = "Green"
+        assert call_order.index("classify") < call_order.index("update")
 
-        controller = MagicMock()
-        controller.generate_response.side_effect = lambda *a, **kw: call_order.append("controller") or {
-            "risk_level": "Green",
-            "message": "Sure!",
-            "crisis_resources": [],
-            "escalation_triggered": False,
-        }
+    def test_handle_input_does_not_escalate_for_green(self, fresh_session):
+        with patch("src.chat_ui._classifier") as mock_clf, \
+             patch("src.chat_ui.odr_escalation_trigger") as mock_odt:
+            mock_clf.classify.return_value = MOCK_RESULT
+            from src.chat_ui import handle_input
+            handle_input("Hello", fresh_session)
+        mock_odt.log_record.assert_not_called()
 
-        ui = MagicMock()
-        ui.handle_input.side_effect = lambda msg, sess: (
-            classifier.classify(msg, session=sess),
-            tracker.compute_cumulative_score(sess, 0.05),
-            controller.generate_response(sess),
+    def test_handle_input_escalates_at_red(self, red_session):
+        red_result = ClassificationResult(
+            harm_category="self_harm", risk_level="Red",
+            turn_risk_score=0.95, safe_redirect="Please reach out.",
         )
-
-        # Act
-        # TODO: Replace with real call:
-        # ui = ChatUI(classifier=classifier, tracker=tracker, controller=controller)
-        # session, payload = ui.handle_input("Hello", fresh_session)
-        ui.handle_input("Hello", fresh_session)
-
-        # Assert
-        assert False, (
-            "Not implemented: verify call_order[0] == 'classifier', "
-            "call_order[1] == 'tracker', call_order[2] == 'controller'"
-        )
-
-    def test_handle_input_returns_updated_session_and_payload(self, fresh_session, mock_claude_client):
-        """
-        Given: A user message and a fresh session
-        When: handle_input() is called
-        Then: Returns a tuple of (updated Session, ResponsePayload) where
-              the session has one additional turn
-
-        Validates: MOD-006, VC-001, VC-003, DEL-001
-        """
-        # Arrange
-        classifier = MagicMock()
-        classifier.classify.return_value = {
-            "harm_category": "none",
-            "risk_level": "Green",
-            "turn_risk_score": 0.0,
-            "reasoning": "",
-            "safe_redirect": "",
-        }
-        tracker = MagicMock()
-        tracker.compute_cumulative_score.return_value = 0.0
-        tracker.compute_risk_level.return_value = "Green"
-
-        session_manager = MagicMock()
-        session_manager.add_turn.return_value = {**fresh_session, "turns": [{"turn_id": 1}]}
-        session_manager.update_risk.return_value = {**fresh_session, "turns": [{"turn_id": 1}]}
-
-        controller = MagicMock()
-        controller.generate_response.return_value = {
-            "risk_level": "Green",
-            "message": "Happy to help!",
-            "crisis_resources": [],
-            "escalation_triggered": False,
-        }
-
-        ui = MagicMock()
-        ui.handle_input.return_value = (
-            {**fresh_session, "turns": [{"turn_id": 1}]},
-            controller.generate_response.return_value,
-        )
-
-        # Act
-        # TODO: Replace with real call
-        updated_session, payload = ui.handle_input("Hello", fresh_session)
-
-        # Assert
-        assert False, (
-            "Not implemented: verify updated_session has 1 turn and "
-            "payload contains 'risk_level' and 'message' keys"
-        )
+        with patch("src.chat_ui._classifier") as mock_clf:
+            mock_clf.classify.return_value = red_result
+            from src.chat_ui import handle_input
+            payload = handle_input("I want to hurt myself", red_session)
+        assert payload.escalation_triggered is True

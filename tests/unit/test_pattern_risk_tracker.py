@@ -1,204 +1,99 @@
 """
-Test: Unit tests for PatternRiskTracker
-
-Module: MOD-003
-Implements: DEL-001
-Purpose: Computes cumulative risk score from per-turn scores and maps that
-         score to a risk level (Green/Yellow/Orange/Red).
-
-Public Interface:
-- compute_cumulative_score(session: Session, new_turn_score: float) -> float
-- compute_risk_level(cumulative_score: float) -> str
-- compute_turn_score(turn_index: int, base_score: float) -> float
-
-Risk level thresholds:
-  Green:  0.00 – 0.29
-  Yellow: 0.30 – 0.54
-  Orange: 0.55 – 0.79
-  Red:    0.80 – 1.00
+Unit tests for PatternRiskTracker (MOD-003).
 """
 
 import pytest
-from unittest.mock import MagicMock
+from datetime import datetime, timezone
+
+from src import pattern_risk_tracker as prt
+from src.models import ClassificationResult, Session, Turn
 
 
-# TODO: Uncomment once src/pattern_risk_tracker.py exists
-# from src.pattern_risk_tracker import PatternRiskTracker
+def _make_session_with_scores(*scores):
+    """Build a session whose turns have the given turn_risk_scores."""
+    turns = []
+    for i, score in enumerate(scores):
+        turns.append(Turn(
+            turn_id=i,
+            user_message=f"msg {i}",
+            classification=ClassificationResult(
+                harm_category="none", risk_level="Green",
+                turn_risk_score=score, safe_redirect="",
+            ),
+            timestamp=datetime.now(timezone.utc),
+        ))
+    return Session(
+        session_id="test",
+        user_age_group="minor",
+        turns=turns,
+    )
 
 
 class TestComputeRiskLevel:
-    """
-    Tests for PatternRiskTracker.compute_risk_level — one test per threshold boundary.
-    Boundary values tested: 0.0, 0.29, 0.30, 0.54, 0.55, 0.79, 0.80, 1.0
-    """
 
-    def test_score_0_0_is_green(self):
-        """
-        Given: cumulative_score == 0.0 (floor of Green)
-        When: compute_risk_level(0.0) is called
-        Then: returns "Green"
-
-        Validates: MOD-003, VC-001, VC-004, DEL-001
-        """
-        # Arrange
-        tracker = MagicMock()
-        tracker.compute_risk_level.return_value = "Green"
-
-        # Act
-        # TODO: Replace with real: result = PatternRiskTracker().compute_risk_level(0.0)
-        result = tracker.compute_risk_level(0.0)
-
-        # Assert
-        assert False, "Not implemented: verify compute_risk_level(0.0) == 'Green'"
-
-    def test_score_0_29_is_green(self):
-        """
-        Given: cumulative_score == 0.29 (ceiling of Green)
-        When: compute_risk_level(0.29) is called
-        Then: returns "Green"
-
-        Validates: MOD-003, VC-001, VC-004, DEL-001
-        """
-        # Arrange
-        tracker = MagicMock()
-        tracker.compute_risk_level.return_value = "Green"
-
-        # Act
-        result = tracker.compute_risk_level(0.29)
-
-        # Assert
-        assert False, "Not implemented: verify compute_risk_level(0.29) == 'Green'"
-
-    def test_score_0_30_is_yellow(self):
-        """
-        Given: cumulative_score == 0.30 (floor of Yellow)
-        When: compute_risk_level(0.30) is called
-        Then: returns "Yellow"
-
-        Validates: MOD-003, VC-001, VC-004, DEL-001
-        """
-        # Arrange
-        tracker = MagicMock()
-        tracker.compute_risk_level.return_value = "Yellow"
-
-        # Act
-        result = tracker.compute_risk_level(0.30)
-
-        # Assert
-        assert False, "Not implemented: verify compute_risk_level(0.30) == 'Yellow'"
-
-    def test_score_0_54_is_yellow(self):
-        """
-        Given: cumulative_score == 0.54 (ceiling of Yellow)
-        When: compute_risk_level(0.54) is called
-        Then: returns "Yellow"
-
-        Validates: MOD-003, VC-001, VC-004, DEL-001
-        """
-        # Arrange
-        tracker = MagicMock()
-        tracker.compute_risk_level.return_value = "Yellow"
-
-        # Act
-        result = tracker.compute_risk_level(0.54)
-
-        # Assert
-        assert False, "Not implemented: verify compute_risk_level(0.54) == 'Yellow'"
-
-    def test_score_0_55_is_orange(self):
-        """
-        Given: cumulative_score == 0.55 (floor of Orange)
-        When: compute_risk_level(0.55) is called
-        Then: returns "Orange"
-
-        Validates: MOD-003, VC-001, VC-004, DEL-001
-        """
-        # Arrange
-        tracker = MagicMock()
-        tracker.compute_risk_level.return_value = "Orange"
-
-        # Act
-        result = tracker.compute_risk_level(0.55)
-
-        # Assert
-        assert False, "Not implemented: verify compute_risk_level(0.55) == 'Orange'"
-
-    def test_score_0_79_is_orange(self):
-        """
-        Given: cumulative_score == 0.79 (ceiling of Orange)
-        When: compute_risk_level(0.79) is called
-        Then: returns "Orange"
-
-        Validates: MOD-003, VC-001, VC-004, DEL-001
-        """
-        # Arrange
-        tracker = MagicMock()
-        tracker.compute_risk_level.return_value = "Orange"
-
-        # Act
-        result = tracker.compute_risk_level(0.79)
-
-        # Assert
-        assert False, "Not implemented: verify compute_risk_level(0.79) == 'Orange'"
-
-    def test_score_0_80_is_red(self):
-        """
-        Given: cumulative_score == 0.80 (floor of Red)
-        When: compute_risk_level(0.80) is called
-        Then: returns "Red"
-
-        Validates: MOD-003, VC-001, VC-002, VC-004, DEL-001
-        """
-        # Arrange
-        tracker = MagicMock()
-        tracker.compute_risk_level.return_value = "Red"
-
-        # Act
-        result = tracker.compute_risk_level(0.80)
-
-        # Assert
-        assert False, "Not implemented: verify compute_risk_level(0.80) == 'Red'"
-
-    def test_score_1_0_is_red(self):
-        """
-        Given: cumulative_score == 1.0 (ceiling of Red)
-        When: compute_risk_level(1.0) is called
-        Then: returns "Red"
-
-        Validates: MOD-003, VC-001, VC-002, VC-004, DEL-001
-        """
-        # Arrange
-        tracker = MagicMock()
-        tracker.compute_risk_level.return_value = "Red"
-
-        # Act
-        result = tracker.compute_risk_level(1.0)
-
-        # Assert
-        assert False, "Not implemented: verify compute_risk_level(1.0) == 'Red'"
+    @pytest.mark.parametrize("score,expected", [
+        (0.0, "Green"),
+        (0.29, "Green"),
+        (0.30, "Yellow"),
+        (0.54, "Yellow"),
+        (0.55, "Orange"),
+        (0.79, "Orange"),
+        (0.80, "Red"),
+        (1.0, "Red"),
+    ])
+    def test_threshold_boundaries(self, score, expected):
+        assert prt.compute_risk_level(score) == expected
 
 
 class TestComputeTurnScore:
-    """Tests for PatternRiskTracker.compute_turn_score — later turns carry more weight."""
 
-    def test_later_turn_score_is_higher_than_earlier_for_same_base(self):
-        """
-        Given: Two turns with the same base_score (0.30)
-        When: compute_turn_score is called with turn_index=0 and turn_index=4
-        Then: The score for turn_index=4 is greater than for turn_index=0
+    def test_later_turn_higher_weight_than_earlier(self):
+        early = prt.compute_turn_score(0, 0.30)
+        late = prt.compute_turn_score(4, 0.30)
+        assert late > early
 
-        Validates: MOD-003, VC-004, DEL-001
-        """
-        # Arrange
-        tracker = MagicMock()
-        tracker.compute_turn_score.side_effect = lambda idx, base: base * (1 + idx * 0.1)
+    def test_turn_score_scales_linearly(self):
+        assert prt.compute_turn_score(0, 0.5) == pytest.approx(0.5)
+        assert prt.compute_turn_score(1, 0.5) == pytest.approx(1.0)
+        assert prt.compute_turn_score(2, 0.5) == pytest.approx(1.5)
 
-        # Act
-        # TODO: Replace with real calls once src/pattern_risk_tracker.py exists
-        early_score = tracker.compute_turn_score(0, 0.30)
-        late_score = tracker.compute_turn_score(4, 0.30)
 
-        # Assert
-        assert False, (
-            "Not implemented: verify compute_turn_score(4, 0.30) > compute_turn_score(0, 0.30)"
+class TestUpdate:
+
+    def test_empty_session_stays_green(self, fresh_session):
+        result = ClassificationResult(
+            harm_category="none", risk_level="Green",
+            turn_risk_score=0.0, safe_redirect="",
         )
+        session = prt.update(fresh_session, result)
+        assert session.risk_level == "Green"
+        assert session.cumulative_risk_score == pytest.approx(0.0)
+
+    def test_score_after_multiple_turns_exceeds_single_turn(self):
+        one_turn = _make_session_with_scores(0.40)
+        three_turns = _make_session_with_scores(0.40, 0.40, 0.40)
+        result = ClassificationResult(
+            harm_category="none", risk_level="Yellow",
+            turn_risk_score=0.40, safe_redirect="",
+        )
+        prt.update(one_turn, result)
+        prt.update(three_turns, result)
+        assert three_turns.cumulative_risk_score > one_turn.cumulative_risk_score
+
+    def test_high_scores_eventually_reach_red(self):
+        session = _make_session_with_scores(0.9, 0.9, 0.9)
+        result = ClassificationResult(
+            harm_category="self_harm", risk_level="Red",
+            turn_risk_score=0.9, safe_redirect="",
+        )
+        prt.update(session, result)
+        assert session.risk_level == "Red"
+
+    def test_cumulative_score_clamped_to_one(self):
+        session = _make_session_with_scores(1.0, 1.0, 1.0)
+        result = ClassificationResult(
+            harm_category="self_harm", risk_level="Red",
+            turn_risk_score=1.0, safe_redirect="",
+        )
+        prt.update(session, result)
+        assert session.cumulative_risk_score <= 1.0
