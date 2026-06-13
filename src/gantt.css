@@ -1,0 +1,59 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  background: #f1f5f9; color: #0f172a; font-size: 13px;
+}
+#app { max-width: 1500px; margin: 0 auto; padding: 20px 24px; }
+
+header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px;
+}
+.title  { font-size: 17px; font-weight: 700; }
+.sub    { font-size: 11.5px; color: #64748b; margin-top: 3px; }
+
+.controls { display: flex; gap: 6px; flex-wrap: wrap; }
+button {
+  font-family: inherit; font-size: 11px; padding: 4px 11px;
+  border-radius: 4px; border: 1px solid #cbd5e1;
+  background: white; color: #475569; cursor: pointer; font-weight: 500;
+}
+button:hover { background: #f8fafc; }
+button.on { background: #0f172a; color: white; border-color: #0f172a; }
+
+.card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+.card + .card, .card + #legend, #legend + .card { margin-top: 10px; }
+.card-hdr {
+  padding: 8px 14px; font-size: 11px; font-weight: 600;
+  color: #64748b; text-transform: uppercase; letter-spacing: .06em;
+  border-bottom: 1px solid #f1f5f9; background: #f8fafc;
+}
+svg.chart { display: block; width: 100%; }
+
+#legend {
+  margin-top: 10px; display: flex; gap: 14px; flex-wrap: wrap;
+  padding: 10px 14px; font-size: 11px; color: #64748b;
+  background: white; border: 1px solid #e2e8f0; border-radius: 8px;
+}
+.li { display: flex; align-items: center; gap: 5px; }
+.ls { width: 11px; height: 11px; border-radius: 2px; flex-shrink: 0; }
+
+#tip {
+  position: fixed; display: none;
+  background: #1e293b; color: #e2e8f0;
+  border-radius: 6px; padding: 10px 13px;
+  font-size: 11.5px; line-height: 1.65; max-width: 300px;
+  pointer-events: none; z-index: 999;
+  box-shadow: 0 8px 24px rgba(0,0,0,.3);
+}
+.tt { font-size: 12.5px; font-weight: 700; color: white; margin-bottom: 5px; }
+.tl { color: #94a3b8; }
+.tv { color: #e2e8f0; }
+.tn { font-size: 10.5px; color: #94a3b8; margin-top: 5px; padding-top: 5px; border-top: 1px solid #334155; }
+
+#err {
+  display: none; background: #fef3c7; border: 1px solid #fcd34d;
+  color: #78350f; border-radius: 8px; padding: 14px 16px;
+  margin-bottom: 14px; font-size: 13px; line-height: 1.6;
+}
+#err code { background: #fde68a; padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 12px; }

@@ -1,0 +1,63 @@
+
+# Environment variables
+.env*
+
+# Secrets and credentials
+secrets/
+*.secret
+*.pem
+*.key
+*.p12
+*.pfx
+*_rsa
+*_dsa
+*_ecdsa
+*_ed25519
+credentials.json
+token.json
+service-account*.json
+.netrc
+
+# Archive
+archive/
+
+#Claude specific
+.claude*
+CLAUDE.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+
+# Test / coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Internal session reports and logs
+docs/reports/
+
+# Archive
+archive*
+
+# Mac
+.DS_Store
+**/.DS_Store
+
+# GitHub
+.github/
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+

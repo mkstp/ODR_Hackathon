@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CBI AI Training — Project Timeline</title>
+  <link rel="stylesheet" href="gantt.css">
+</head>
+<body>
+<div id="app">
+  <div id="err"></div>
+  <header>
+    <div>
+      <div class="title">CBI AI Training Materials — Project Timeline</div>
+      <div class="sub" id="meta">Loading…</div>
+    </div>
+    <div class="controls">
+      <button id="b-cp" class="on">Critical Path</button>
+      <button id="b-ms" class="on">Milestones</button>
+      <button id="b-lo" class="on">Hour Load</button>
+    </div>
+  </header>
+  <div class="card"><svg id="gantt" class="chart"></svg></div>
+  <div class="card" id="load-card">
+    <div class="card-hdr">
+      Estimated Hours · Per Week
+      <span id="log-count" style="font-weight:400;color:#94a3b8"></span>
+    </div>
+    <svg id="load" class="chart"></svg>
+  </div>
+  <div id="legend"></div>
+</div>
+<div id="tip"></div>
+<script src="gantt.js"></script>
+</body>
+</html>
